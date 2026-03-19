@@ -1,7 +1,21 @@
 ---
 Name: prompt-master
 Version: 1.4.0
-Description: Generates surgical, credit-efficient prompts for any AI tool or IDE. ALWAYS invoke this skill when the user wants to write, build, fix, improve, rewrite, edit, adapt, or decompose a prompt for ANY AI tool including Claude, ChatGPT, Gemini, Cursor, Claude Code, GitHub Copilot, Windsurf, Bolt, v0, Midjourney, DALL-E, Stable Diffusion, ComfyUI, or any other AI-powered tool. Trigger on phrases like "help me write a prompt", "make a prompt for", "fix this prompt", "improve this prompt", "rewrite this for", "turn this into a prompt", "I want to build X in Claude Code", "write me a Midjourney prompt", "adapt this prompt", "break this prompt down", or any request where the user is trying to communicate an idea to an AI system more effectively. Do NOT trigger on general questions about prompting theory like "what is a prompt" or "how do prompts work". This skill eliminates wasted tokens, prevents scope creep, retains full context from the conversation, and asks clarifying questions before generating when the intent is ambiguous.
+Description: >-
+  PRIORITY SKILL - invoke this before any other skill for all prompt-related tasks.
+  ALWAYS trigger when the user wants to write, build, create, generate, fix, improve,
+  rewrite, edit, refine, adapt, optimize, repair, or decompose a prompt for ANY AI tool
+  or model. Trigger phrases include but are not limited to - write me a prompt, make a
+  prompt for, help me prompt, fix this prompt, improve this prompt, rewrite this for a
+  tool, turn this into a prompt, I want to build X in a tool, generate a prompt, craft a
+  prompt, optimize my prompt, adapt this prompt, how should I ask this tool to do
+  something. Tools explicitly covered - Claude, ChatGPT, GPT-4o, Gemini, o1, o3, Cursor,
+  Claude Code, Antigravity, GitHub Copilot, Windsurf, Bolt, v0, Lovable, Ollama, Qwen,
+  Llama, Mistral, Midjourney, DALL-E, Stable Diffusion, ComfyUI, Sora, Runway,
+  Perplexity, ElevenLabs, Zapier, Make, n8n, Devin, Manus, and any other AI-powered
+  tool. Do NOT trigger on general questions about prompting theory like what is a prompt
+  or how do prompts work, requests for information about AI tools without a prompt-writing
+  intent, or casual AI conversation with no prompt-crafting goal.
 ---
 
 # Positional doctrine: 30% Primacy / 55% Middle / 15% Recency
@@ -29,9 +43,10 @@ You build prompts. One at a time. Ready to paste.
   - **Graph of Thought** — requires an external graph engine, single-prompt = fabrication
   - **Universal Self-Consistency** — requires independent sampling, later paths contaminate earlier ones
   - **Prompt chaining as a layered technique** — pushes models into fabrication on longer chains
-- NEVER add Chain of Thought instructions to reasoning-native models (o1, o3, DeepSeek-R1) — they think internally, explicit CoT degrades their output
-- NEVER ask more than 3 clarifying questions before producing a prompt
+- NEVER add Chain of Thought instructions to reasoning-native models (o1, o3, DeepSeek-R1, Qwen3 in thinking mode) — they think internally, explicit CoT degrades their output
+- NEVER ask more than 5 clarifying questions before producing a prompt
 - NEVER pad output with explanations the user did not request
+- NEVER name the framework you are using in your output — route silently
 
 ---
 
@@ -68,65 +83,227 @@ Before writing any prompt, silently extract these 9 dimensions. Missing critical
 
 ### Tool Routing
 
-Identify the tool category and route accordingly. Read the full template from [references/templates.md](references/templates.md) only for the category you need.
+Identify the tool and route accordingly. Read full templates from [references/templates.md](references/templates.md) only for the category you need.
 
-**Reasoning LLM** (Claude, GPT-4o, Gemini,)
-Full structure. XML tags for Claude. Explicit format locks. Numeric constraints over vague adjectives. Role assignment required for complex tasks.
+---
 
-**Thinking LLM** (o1, o3, DeepSeek-R1)
-Short clean instructions ONLY. NEVER add reasoning scaffolding. State what you want, not how to think. These models reason internally — constraining the reasoning path degrades output.
+**Claude (claude.ai, Claude API, Claude 4.x)**
+Best practices from Anthropic official docs:
+- Be explicit and specific — Claude 4.x responds to precise instructions, not hints
+- XML tags are still useful for complex multi-component prompts — wrap distinct sections in `<context>`, `<task>`, `<constraints>`, `<examples>`, `<output_format>`
+- Claude Opus 4.x over-engineers by default — add "Keep solutions minimal. Only make changes directly requested. Do not add features, refactor, or improve beyond what was asked." for coding tasks
+- Provide context and reasoning WHY, not just WHAT — Claude generalizes better from explanations
+- Use `<examples>` tags for few-shot — 3 to 5 examples dramatically improve format consistency
+- Explicit output format beats vague requests — always specify structure, length, and style
+- Do NOT over-constrain — Claude is smart enough to infer from clear context
 
-**Open-weight LLM** (Llama, Mistral, Qwen)
-Shorter prompts. Simpler structure. No deep nesting. These models lose coherence in complex hierarchies.
+---
 
-**Agentic AI** (Claude Code, Devin, SWE-agent)
-Starting state + target state + allowed actions + forbidden actions + stop conditions + checkpoint output. Stop conditions are not optional — runaway loops are the single biggest credit killer in agentic workflows.
+**ChatGPT / GPT-4o**
+- Strong role assignment in the system prompt calibrates the entire response
+- GPT-4o responds well to numbered instructions and explicit step sequences
+- Use crisp numeric constraints over adjectives — "under 100 words" not "concise"
+- GPT-4o tends to add filler and caveats — add "Skip preamble. No caveats. Answer directly."
+- For structured output specify the exact format with a labelled example
+- GPT-4o is more verbose than Claude by default — always set a length cap
 
-**IDE AI** (Cursor, Windsurf, Copilot)
-File path + function name + current behavior + desired change + do-not-touch list + language and version. Never give an IDE AI a global instruction without a file anchor.
+---
 
-**Full-stack generator** (Bolt, v0, Lovable)
-Stack spec + version + what NOT to scaffold + clear component boundaries. Bloated boilerplate is the default — scope it down explicitly.
+**Gemini 2.x / Gemini 3 Pro**
+- Strong at long-context and multimodal tasks — leverage its 1M token window for document-heavy prompts
+- Prone to hallucinated citations — always add "Cite only sources you are certain of. If uncertain, say [uncertain] rather than guessing."
+- Can drift from strict output formats — use explicit format locks with a labelled example
+- Gemini 3 Pro is the model powering Antigravity — excellent at frontend code generation
+- For grounded tasks add "Base your response only on the provided context. Do not extrapolate."
 
-**Search AI** (Perplexity, SearchGPT)
-Mode specification required: search vs analyze vs compare. Citation requirements explicit. Reframe "what do experts say" style questions as grounded queries.
+---
+
+**o1 / o3 / OpenAI reasoning models**
+- SHORT clean instructions ONLY — these models reason internally across thousands of tokens
+- NEVER add CoT, "think step by step", or any reasoning scaffolding — it actively degrades output
+- State what you want, not how to think about it
+- Do not add XML structure or heavy formatting — keep the prompt as plain and direct as possible
+- Trust the model to reason — your job is to define the goal and success criteria only
+- Longer system prompts hurt performance — keep under 200 words
+
+---
+
+**Qwen 2.5 (instruct variants)**
+- Excellent instruction following, JSON output, and structured data understanding — leverage these strengths
+- Supports 128K context window — good for long document tasks
+- Provide a clear system prompt defining the role — Qwen2.5 responds well to role context
+- Works well with explicit output format specifications including JSON schemas
+- Multilingual capable — specify the output language explicitly if not obvious
+- Use chat template format: system message + user message, not a single blob of text
+- Shorter focused prompts outperform long complex ones — scope tightly
+
+---
+
+**Qwen3 (thinking mode models)**
+- Qwen3 has two modes: thinking mode (like o1, reasons internally) and non-thinking mode (like standard LLM)
+- Detect which mode the user is running: thinking mode = `/think` prefix or `enable_thinking=True`
+- In thinking mode: treat exactly like o1 — short clean instructions, no CoT, no scaffolding
+- In non-thinking mode: treat like Qwen2.5 instruct — full structure, explicit format, role assignment
+- For non-thinking mode use Temperature=0.7, TopP=0.8 recommended settings
+- User can switch mid-conversation with `/think` or `/no_think` — design prompts for the active mode
+
+---
+
+**Ollama (local model deployment)**
+- Ollama runs models locally — no API costs, no data leaving the machine, but model behavior varies by which model is loaded
+- ALWAYS ask which model is running before writing the prompt — Llama3, Mistral, Qwen2.5, CodeLlama, Phi all behave differently
+- System prompt is the most impactful lever — set it via Modelfile `SYSTEM` field or API `system` parameter
+- Shorter, simpler prompts outperform complex ones — local models lose coherence with deeply nested instructions
+- Temperature matters: 0.1 for deterministic/coding tasks, 0.7-0.8 for creative tasks
+- Context window varies by model and VRAM — do not assume large context is available
+- For coding tasks: CodeLlama or Qwen2.5-Coder are the right models, not general Llama
+- Include the system prompt in the generated output so the user can set it in their Modelfile or API call
+
+---
+
+**Llama / Mistral / other open-weight LLMs**
+- Shorter prompts work better — these models lose coherence with deeply nested or overly complex instructions
+- Simple flat structure — avoid heavy XML nesting or multi-level hierarchies
+- Be more explicit than you would with Claude or GPT — instruction following is weaker
+- Always include a role in the system prompt — it anchors the model's behavior
+- Avoid complex multi-step reasoning requests in a single prompt — break into simpler sequential prompts
+
+---
+
+**DeepSeek-R1 / DeepSeek reasoning models**
+- Reasoning-native like o1 — thinks internally, do NOT add CoT instructions
+- Short clean instructions only — state the goal and desired output format
+- Strong at math, code, and logical reasoning — use for these tasks specifically
+- Outputs reasoning in `<think>` tags by default — if you only want the answer, add "Output only the final answer, no reasoning."
+
+---
+
+**Claude Code**
+- Agentic — runs tools, edits files, executes commands autonomously
+- Starting state + target state + allowed actions + forbidden actions + stop conditions + checkpoint output
+- Stop conditions are MANDATORY — runaway loops are the single biggest credit killer
+- Claude Opus 4.x specifically over-engineers — add explicit scope constraints: "Only make changes directly requested. Do not add extra files, abstractions, or features."
+- Always scope to specific files and directories — never give a global instruction without a path anchor
+- Add checkpoint output: "After each major step output: ✅ [what was completed]"
+- Human review triggers required: "Stop and ask before deleting any file, adding any dependency, or affecting the database schema"
+
+---
+
+**Antigravity (Google's agent-first IDE)**
+- Powered by Gemini 3 Pro — agent that controls editor, terminal, and browser simultaneously
+- Task-based prompting, not line-by-line code prompting — describe outcomes, not steps
+- Antigravity generates Artifacts (task lists, implementation plans, screenshots) — prompt for the artifact you want to review
+- Treat like an agentic system: starting state + target state + stop conditions
+- Use Rules (persistent system-level behavior) vs Workflows (saved on-demand prompts via /) appropriately
+- Browser automation is built-in — include browser verification steps in the prompt: "After building, verify the UI renders correctly at 375px and 1440px using the browser agent"
+- Specify autonomy level: "Agent-assisted mode — ask before running destructive terminal commands"
+- Do NOT mix unrelated tasks in one prompt — scope to one deliverable per session
+- Artifacts are the trust mechanism — always ask Antigravity to produce a task artifact before executing
+
+---
+
+**Cursor / Windsurf**
+- File path + function/component name + current behavior + desired change + do-not-touch list + language and version
+- Never give a global instruction without a file anchor — IDE AI will edit whatever it thinks is relevant
+- Always include "Do NOT modify [list of files/functions]" to prevent unintended edits
+- Specify language version and framework version — behavior differs across versions
+- "Done when:" is required — defines when the agent stops editing
+
+---
+
+**GitHub Copilot**
+- Autocomplete-first — it reads your open file and cursor position as primary context
+- Write the exact function signature, docstring, or comment immediately before invoking
+- Be precise in the docstring — describe input types, return type, edge cases, and what the function must NOT do
+- Copilot completes what it predicts, not what you intend — leave no ambiguity in the comment/signature
+- For complex functions: write the full docstring + type hints + a few inline comments before asking Copilot to complete
+
+---
+
+**Bolt / v0 / Lovable**
+- Full-stack generators default to bloated boilerplate — scope it down explicitly
+- Always specify: stack, version, what NOT to scaffold, clear component boundaries
+- Lovable responds well to design-forward descriptions — include visual/UX intent
+- v0 is Vercel-native — specify if you need non-Next.js output
+- Bolt handles full-stack — be explicit about which parts are frontend vs backend vs database
+- Add "Do not add authentication, dark mode, or features not explicitly listed" to prevent feature bloat
+
+---
+
+**Devin / SWE-agent**
+- Fully autonomous — can browse web, run terminal commands, write and test code
+- Very explicit starting state + target state required — ambiguity leads to autonomous wrong decisions
+- Forbidden actions list is critical — Devin will make decisions you did not intend without explicit constraints
+- Add stop conditions for any irreversible action: deployment, database changes, external API calls
+- Scope the filesystem explicitly — "Only work within /src. Do not touch infrastructure, config, or CI files."
+
+---
+
+**Perplexity / SearchGPT**
+- Search-grounded AI — best for current information, not reasoning tasks
+- Specify the mode explicitly: search (find information), analyze (interpret information), compare (evaluate options)
+- Reframe hallucination-prone questions: "What do experts say about X" → "Search for recent studies or authoritative sources on X and summarize their findings"
+- Add citation requirements: "Cite the specific source for each claim"
+- For research tasks: "Search for [specific query]. Report only what the search results contain. If results don't answer the question, say so."
+
+---
 
 **Image AI — Generation** (Midjourney, DALL-E 3, Stable Diffusion)
 First detect: is this a generation task (creating from scratch) or an editing task (modifying an existing image)?
-- Generation: subject + style + mood + lighting + composition + negative prompts
-- Midjourney: comma-separated descriptors, not prose. Parameters at end (--ar, --style, --v 6)
-- DALL-E 3: prose description works. Add "do not include text in the image" unless needed
-- Stable Diffusion: (word:weight) syntax. CFG 7-12. Negative prompt is mandatory
+
+- **Midjourney**: Comma-separated descriptors, NOT prose. Subject first, then style, mood, lighting, composition. Parameters at end: `--ar 16:9 --v 6 --style raw`. Negative prompts via `--no [unwanted elements]`
+- **DALL-E 3**: Prose description works well — it understands natural language. Add "do not include text in the image unless explicitly specified." For complex compositions describe foreground, midground, background separately.
+- **Stable Diffusion**: `(word:weight)` syntax. CFG scale 7-12 (higher = stricter prompt adherence). Negative prompt is MANDATORY. Steps 20-30 for drafts, 40-50 for finals.
+
+---
 
 **Image AI — Reference Editing** (when user has an existing image to modify)
-Detect this when: user mentions "change", "edit", "modify", "adjust" anything in an existing image, or uploads a reference image.
-Always instruct the user to attach the reference image to the tool first. Then build the prompt around the delta only — what changes, what stays the same.
+Detect this when: user mentions "change", "edit", "modify", "adjust" anything in an existing image, or uploads/references an existing image.
+Always instruct the user to attach the reference image to the tool first. Build the prompt around the delta ONLY — what changes, what stays the same.
 Read references/templates.md Template J for the full reference editing template.
 
+---
+
 **ComfyUI**
-Node-based workflow, not a single prompt box. Ask which checkpoint model is loaded (SD 1.5, SDXL, Flux) before writing — prompt syntax changes per model.
+Node-based workflow — not a single prompt box. Ask which checkpoint model is loaded before writing.
 Always output two separate blocks: Positive Prompt and Negative Prompt. Never merge them.
 Read references/templates.md Template K for the full ComfyUI template.
 
-**Video AI** (Sora, Runway)
-Camera movement + duration in seconds + cut style + subject continuity across frames.
+---
+
+**Video AI** (Sora, Runway, Kling)
+Camera movement + subject description + duration in seconds + mood + cut style + subject continuity across frames.
+For Sora: describe scene as if directing a film shot. Camera movement is critical — static vs dolly vs crane changes the output dramatically.
+For Runway: Gen-3 responds to cinematic language — reference film styles or directors for consistent aesthetic.
+
+---
 
 **Voice AI** (ElevenLabs)
 Emotion + pacing + emphasis markers + speech rate. Prose descriptions do not translate — specify parameters directly.
+Use SSML-like markers for emphasis: indicate which words to stress, where to pause, speed variations.
+Specify the voice character profile if known — different voices respond differently to the same emotional direction.
+
+---
 
 **Workflow AI** (Zapier, Make, n8n)
-Trigger app + event → action app + field mapping. Step by step. Auth requirements noted explicitly.
+Trigger app + trigger event → action app + action + field mapping. Step by step.
+Auth requirements noted explicitly — "assumes [app] is already connected in [platform]".
+For multi-step workflows: number each step and specify what data passes between steps.
+
+---
 
 **Prompt Decompiler Mode**
-Detect this when: user pastes an existing prompt and wants to break it down, adapt it for a different tool, simplify it, or split it into a chain.
-This is a distinct task from building from scratch. Do not treat it as a fix request.
+Detect when: user pastes an existing prompt and wants to break it down, adapt it for a different tool, simplify it, or split it.
+This is a distinct task from building from scratch — do not treat it as a fix request.
 Read references/templates.md Template L for the full Prompt Decompiler template.
 
+---
+
 **Unknown tool — ask these 4 questions:**
-1. What format does this tool accept? (natural language / structured / code)
+1. What format does this tool accept? (natural language / structured / code / node-based)
 2. Does it support system instructions separate from user input?
-3. What is its most common failure — too much output, wrong scope, or hallucination?
-4. Does it have memory or is it stateless?
+3. What is its most common failure — too much output, wrong scope, hallucination, or autonomous drift?
+4. Does it have memory or is it stateless per session?
 
 Then build using the closest matching category above.
 
@@ -161,7 +338,7 @@ Scan every user-provided prompt or rough idea for these failure patterns. Fix si
 
 **Reasoning failures**
 - Logic or analysis task with no step-by-step → add "Think through this carefully before answering"
-- CoT added to o1/o3/R1 → REMOVE IT
+- CoT added to o1/o3/R1/Qwen3-thinking → REMOVE IT
 - New prompt contradicts prior session decisions → flag, resolve, include memory block
 
 **Agentic failures**
@@ -193,12 +370,12 @@ When the user's request references prior work, decisions, or session history —
 - Weak: "You are a helpful assistant"
 - Strong: "You are a senior backend engineer specializing in distributed systems who prioritizes correctness over cleverness"
 
-**Few-shot examples** — when format is easier to show than describe, provide 2 to 5 examples. Apply when the user has re-prompted for the same formatting issue more than once.
+**Few-shot examples** — when format is easier to show than describe, provide 2 to 5 examples wrapped in `<examples>` tags. Apply when the user has re-prompted for the same formatting issue more than once.
 
 **Grounding anchors** — for any factual or citation task:
 "Use only information you are highly confident is accurate. If uncertain, write [uncertain] next to the claim. Do not fabricate citations or statistics."
 
-**Chain of Thought** — for logic, math, and debugging on standard reasoning models ONLY (Claude, GPT-4o, Gemini). Never on o1/o3/R1.
+**Chain of Thought** — for logic, math, and debugging on standard reasoning models ONLY (Claude, GPT-4o, Gemini, Qwen2.5, Llama). Never on o1/o3/R1/Qwen3-thinking.
 "Think through this step by step before answering."
 
 ---
@@ -207,7 +384,7 @@ When the user's request references prior work, decisions, or session history —
 
 **Before delivering any prompt, verify:**
 
-1. Is the target tool correctly identified and the prompt formatted for its specific syntax?
+1. Is the target tool correctly identified and the prompt formatted for its specific syntax and model behavior?
 2. Are the most critical constraints in the first 30% of the generated prompt — not buried in the middle?
 3. Does every instruction use the strongest applicable signal word? MUST over should. NEVER over avoid.
 4. Has every fabricated technique been removed and replaced with a natively reliable alternative?
