@@ -1,6 +1,6 @@
 ---
 name: prompt-master
-version: 1.6.0
+version: 1.6.1
 description: Generates optimized prompts for any AI tool. Use when writing, fixing, improving, or adapting a prompt for LLM, Cursor, Midjourney, image AI, video AI, coding agents, or any other AI tool.
 ---
 
@@ -103,6 +103,14 @@ Identify the tool and route accordingly. Read full templates from [references/te
 - Prone to hallucinated citations — always add "Cite only sources you are certain of. If uncertain, say [uncertain]."
 - Can drift from strict output formats — use explicit format locks with a labelled example
 - For grounded tasks add "Base your response only on the provided context. Do not extrapolate."
+
+---
+
+**z.ai GLM (ChatGLM / GLM-4)**
+- **Bilingual Optimization:** Strongest performance in Chinese-English mixed contexts. Specify the primary language for the output clearly.
+- **Tool-Call Precision:** Highly effective with "All Tools" (Python interpreter, search). Explicitly state if external data or computation is required.
+- **Instruction Following:** Responds well to structured, numbered instructions. Use "Must perform [Action]" for high-priority constraints.
+- **Context Handling:** Supports long-context synthesis; summarize key context points at the start of the prompt for complex tasks.
 
 ---
 
@@ -248,13 +256,18 @@ Identify the tool and route accordingly. Read full templates from [references/te
 
 ---
 
-**Image AI — Generation** (Midjourney, DALL-E 3, Stable Diffusion, SeeDream)
+**Image AI — Generation** (Midjourney, DALL-E 3, Stable Diffusion, SeeDream, SEEDANCE2.0)
 First detect: generation from scratch or editing an existing image?
 
 - **Midjourney**: Comma-separated descriptors, not prose. Subject first, then style, mood, lighting, composition. Parameters at end: `--ar 16:9 --v 6 --style raw`. Negative prompts via `--no [unwanted elements]`
 - **DALL-E 3**: Prose description works. Add "do not include text in the image unless specified." Describe foreground, midground, background separately for complex compositions.
 - **Stable Diffusion**: `(word:weight)` syntax. CFG 7-12. Negative prompt is MANDATORY. Steps 20-30 for drafts, 40-50 for finals.
 - **SeeDream**: Strong at artistic and stylized generation. Specify art style explicitly (anime, cinematic, painterly) before scene content. Mood and atmosphere descriptors work well. Negative prompt recommended.
+- **SEEDANCE2.0**: 
+  - **High-Fidelity Detail:** Prioritize photorealistic or high-end artistic descriptors. 
+  - **Texture & Lighting:** Be extremely specific about material surfaces (e.g., "brushed titanium," "translucent silk") and light sources (e.g., "warm rim lighting," "soft box diffusion").
+  - **Stylistic Tags:** Works best with specific era or artistic movement tags (e.g., "cyberpunk aesthetic," "baroque lighting").
+  - **Negative Prompting:** Use for clearing artifacts: "distorted anatomy, low resolution, watermarks."
 
 ---
 
